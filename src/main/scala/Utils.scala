@@ -1,10 +1,11 @@
 import java.io.File
+
 import com.google.gson.Gson
 import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCredentialsProvider, HttpClientBuilder}
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFWorkbook}
 
 object Utils {
   case class LinAlbaran (
@@ -44,7 +45,19 @@ object Utils {
     println(response.getStatusLine.getReasonPhrase)
   }
 
-  def lee_excel(): Unit = {
+  def readExcel(): XSSFSheet = {
+    val file = new File("src/main/resources/prueba.xlsx")
+
+    // Abro el libro excel
+    val workbook = new XSSFWorkbook(file)
+
+    // Obtengo primera hoja
+    val sheet = workbook.getSheetAt(0)
+
+    sheet
+  }
+
+  def dataTransform(sheet: XSSFSheet): Unit = {
     var is_return: Boolean = false
     var receipt_no: String = ""
     var vendor_no: String = ""
@@ -58,14 +71,6 @@ object Utils {
     var order_no: String = ""
     var ceco: String = ""
     var entry_type: String = ""
-
-    val file = new File("src/main/resources/Example.xlsx")
-
-    // Abro el libro excel
-    val workbook = new XSSFWorkbook(file)
-
-    // Obtengo primera hoja
-    val sheet = workbook.getSheetAt(0)
 
     // Iterar por cada fila
     val rowIterator = sheet.iterator

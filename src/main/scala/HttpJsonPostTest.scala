@@ -1,4 +1,6 @@
 object HttpJsonPostTest extends App {
-  Utils.lee_excel()
+  val sheet = Utils.readExcel()
+
+  Utils.dataTransform(sheet)
 }
 
