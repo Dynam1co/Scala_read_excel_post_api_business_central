@@ -7,6 +7,8 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCredentialsProvider, HttpClientBuilder}
 import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFWorkbook}
 
+import scala.collection.mutable.ListBuffer
+
 object Utils {
   case class LinAlbaran (
                           is_return: Boolean,
@@ -24,27 +26,6 @@ object Utils {
                           entry_type: String
                         )
 
-  def post_lin_albaran(pLinea: LinAlbaran): Unit = {
-    val username = "admin"
-    val password = "z5rMIhW5J2H74LgtvGoPsicz/A02avHxnmLGMrbUu3Y="
-
-    val credentialsProvider = new BasicCredentialsProvider()
-    credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password))
-
-    val lin_json = new Gson().toJson(pLinea)
-
-    val post = new HttpPost("http://bc3652020wave1:7048/BC/ODataV4/Company('Cronus%20Copia')/ReceiptLine")
-
-    post.setHeader("Content-type", "application/json")
-    post.setEntity(new StringEntity(lin_json))
-
-    val client = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build()
-    val response = client.execute(post)
-
-    println(response.getStatusLine.getStatusCode)
-    println(response.getStatusLine.getReasonPhrase)
-  }
-
   def readExcel(): XSSFSheet = {
     val file = new File("src/main/resources/prueba.xlsx")
 
@@ -57,7 +38,7 @@ object Utils {
     sheet
   }
 
-  def dataTransform(sheet: XSSFSheet): Unit = {
+  def dataTransform(sheet: XSSFSheet): List[LinAlbaran] = {
     var is_return: Boolean = false
     var receipt_no: String = ""
     var vendor_no: String = ""
@@ -71,6 +52,7 @@ object Utils {
     var order_no: String = ""
     var ceco: String = ""
     var entry_type: String = ""
+    var lineas = new ListBuffer[LinAlbaran]()
 
     // Iterar por cada fila
     val rowIterator = sheet.iterator
@@ -114,10 +96,31 @@ object Utils {
                 unit_cost, percent_discount, amount, vat_amount, receipt_date, order_no,
                 ceco, entry_type)
 
-              post_lin_albaran(lin)
+              lineas += lin
           }
         }
       }
     }
+
+    val miLista: List[LinAlbaran] = lineas.toList
+    miLista
+  }
+
+  def postData(pLinea: LinAlbaran, endpoint: String, username: String, password: String): Unit = {
+    val credentialsProvider = new BasicCredentialsProvider()
+    credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password))
+
+    val lin_json = new Gson().toJson(pLinea)
+
+    val post = new HttpPost(endpoint)
+
+    post.setHeader("Content-type", "application/json")
+    post.setEntity(new StringEntity(lin_json))
+
+    val client = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build()
+    val response = client.execute(post)
+
+    println(response.getStatusLine.getStatusCode)
+    println(response.getStatusLine.getReasonPhrase)
   }
 }
