@@ -61,7 +61,7 @@ object HttpJsonPostTest extends App {
     var ceco: String = ""
     var entry_type: String = ""
 
-    val file = new File("Example.xlsx")
+    val file = new File("src/main/resources/Example.xlsx")
 
     // Abro el libro excel
     val workbook = new XSSFWorkbook(file)
