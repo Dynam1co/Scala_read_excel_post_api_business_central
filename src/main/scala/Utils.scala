@@ -1,4 +1,5 @@
 import java.io.File
+import java.text.SimpleDateFormat
 
 import com.google.gson.Gson
 import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
@@ -27,7 +28,7 @@ object Utils {
                         )
 
   def readExcel(): XSSFSheet = {
-    val file = new File("src/main/resources/prueba.xlsx")
+    val file = new File("src/main/resources/prueba3.xlsx")
 
     // Abro el libro excel
     val workbook = new XSSFWorkbook(file)
@@ -60,6 +61,21 @@ object Utils {
       rowIterator.hasNext
     }) {
       val row = rowIterator.next
+
+      is_return = false
+      receipt_no = ""
+      vendor_no = ""
+      item_no = ""
+      quantity = 0
+      unit_cost = 0
+      percent_discount = 0
+      amount = 0
+      vat_amount = 0
+      receipt_date = ""
+      order_no = ""
+      ceco = ""
+      entry_type = ""
+
       // Por cada fila, itero todas las columnas
       val cellIterator = row.cellIterator
       while ( {
@@ -72,25 +88,45 @@ object Utils {
             case 0 =>
               val strReturn = cell.getStringCellValue
               is_return = strReturn.toBoolean
-            case 1 => receipt_no = cell.getStringCellValue
-            case 2 => vendor_no = cell.getStringCellValue
-            case 3 => item_no = cell.getStringCellValue
+            case 1 =>
+              try {
+                receipt_no = cell.getStringCellValue
+              } catch {
+                case _: Throwable => receipt_no = cell.getNumericCellValue.toString
+              }
+            case 2 =>
+              try {
+                vendor_no = cell.getStringCellValue
+              } catch {
+                case _: Throwable => vendor_no = cell.getNumericCellValue.toString
+              }
+            case 3 =>
+              try {
+                item_no = cell.getStringCellValue
+              } catch {
+                case _: Throwable => item_no = cell.getNumericCellValue.toString
+              }
             case 4 => quantity = cell.getNumericCellValue
-            case 5 =>
-              val strUnit_cost = cell.getStringCellValue
-              unit_cost = strUnit_cost.toDouble
+            case 5 => unit_cost = cell.getNumericCellValue
             case 6 => percent_discount = cell.getNumericCellValue
-            case 7 =>
-              val strAmount = cell.getStringCellValue
-              amount = strAmount.toDouble
-            case 8 =>
-              val strVat_amount = cell.getStringCellValue
-              vat_amount = strVat_amount.toDouble
-            case 9 => receipt_date = cell.getStringCellValue
+            case 7 => amount = cell.getNumericCellValue
+            case 8 => vat_amount = cell.getNumericCellValue
+            case 9 =>
+              val sdf = new SimpleDateFormat("yyyy-MM-dd")
+              receipt_date = sdf.format(cell.getDateCellValue)
+
+              //val sdf2 = new SimpleDateFormat("yyyy-MM-dd")
+              //println(sdf2.format(cell.getDateCellValue))
             case 10 => order_no = cell.getStringCellValue
             case 11 => ceco = cell.getStringCellValue
             case 12 =>
               entry_type = cell.getStringCellValue
+
+              receipt_no = receipt_no.replace("'", "")
+              vendor_no = vendor_no.replace("'", "")
+              item_no = item_no.replace("'", "")
+              order_no = order_no.replace("'", "")
+              ceco = ceco.replace("'", "")
 
               val lin = LinAlbaran(is_return, receipt_no, vendor_no, item_no, quantity,
                 unit_cost, percent_discount, amount, vat_amount, receipt_date, order_no,
